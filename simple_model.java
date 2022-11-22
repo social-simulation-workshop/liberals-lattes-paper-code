@@ -52,8 +52,9 @@ public class simple_model extends Thread{
 		corr=0.;
 		node_array = new MyNode[netsize]; //initialize all the agents
 		media_hubs = new Media[Nhubs]; //initialize hubs
-		try{ //read in the network data from an external file
-			String filename = "final/MS_rewiring/MS_rewiring_"+Integer.toString(netsize)+"_"+Integer.toString(rewiring)+".0.txt";
+		
+		String filename = "prebuild_network/MS_rewiring_"+Integer.toString(netsize)+"_"+Integer.toString(rewiring)+".0.txt";
+		try { //read in the network data from an external file
 			BufferedReader in = new BufferedReader(new FileReader(filename));
 		    String str;
 		    while ((str = in.readLine()) != null) {
@@ -68,7 +69,10 @@ public class simple_model extends Thread{
 		    	}
 		    }
 		    in.close();
-		}catch (IOException e) {}
+		} catch (IOException e) {
+			System.out.printf("error during reading file: %s\n", filename);
+			e.printStackTrace();
+		}
 		
 		for (int i=0; i<media_hubs.length; i++){
 			media_hubs[i]=new Media(5, 20);
@@ -421,20 +425,30 @@ public class simple_model extends Thread{
 					" "+results[8]+ // max_iter
 					"\n"; 
 		// save results
+		String resultFileName = "results/outcome_figure3_"+condition+".txt";
 		try{
 			//String fname = "results/"+ncaves+"_"+cave_size+"_outcome_figure51.txt";
-			String fname = "results/outcome_figure4_"+condition+".txt";
+			File outcomeDir = new File("results");
+			if (!outcomeDir.exists())
+				outcomeDir.mkdirs();
 			//The data will be written into the existed file with the same name. It will not delete the existed file first!
 			//It is useful in the batch mode.
-			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true)); 
+			BufferedWriter out = new BufferedWriter(new FileWriter(resultFileName, true)); 
 			System.out.println(s);
 			out.write(s);
 			out.close();
-		}catch (IOException e) {}
+		}catch (IOException e) {
+			System.out.printf("error during create outcome file: %s\n", resultFileName);
+			e.printStackTrace();
+		}
+
 		// save raw data
+		String rawFileName = "results/data/"+indv_effect+"_"+rep+"_"+Nhubs+"_"+netsize+"_"+condition+".txt";
 		try{
-			String fname = "results/data/"+indv_effect+"_"+rep+"_"+Nhubs+"_"+netsize+"_"+condition+".txt";
-			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true)); 
+			File outcomeDir = new File("results/data");
+			if (!outcomeDir.exists())
+				outcomeDir.mkdirs();
+			BufferedWriter out = new BufferedWriter(new FileWriter(rawFileName, true)); 
 			out.write("# "+s); // write the simuation condition in the first line of the data file
 			for (int i=0; i<netsize; i++){
 				String fixedArray = Arrays.toString(node_array[i].fixed_array);
@@ -450,7 +464,10 @@ public class simple_model extends Thread{
 				out.write("\n");
 			}
 			out.close();
-		}catch(IOException e) {}
+		}catch(IOException e) {
+			System.out.printf("error during create raw data file: %s\n", rawFileName);
+			e.printStackTrace();
+		}
 
 	}
 	
