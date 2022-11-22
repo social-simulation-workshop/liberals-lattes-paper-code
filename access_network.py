@@ -10,6 +10,7 @@ The code creates networks with specified number of caves and rewiring conditions
 For MS_rewiring_500_10.0.txt, it means the total number of nodes are 500, composed of 5 100-node caves. 10% of all the pre-existed edges are rewired through the Maslov-Sneppen procedure. It is similar to double_edge_swap function in networkx package.
 '''
 
+import os
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -54,31 +55,37 @@ class access_network:
             if saved == True and round(percent,3)*1000/50>p_saved:
                 saved=False
             # whenever the percentage of ties have been rewired is at every 5% interval, the network structure will be saved as an adjcent matrix.
-            if round(percent,3)*1000%50==0 and saved==False: 
-                print round(percent,3), iteration
+            if round(percent,3) == 0.1 and saved==False: # only need 10% rewiring network to reproduce paper results.=
+                print(round(percent,3), iteration)
                 
                 cc= nx.average_clustering(G)
                 #print iteration, nswap, cc
                 g.write(str(round(percent,3)*100)+" "+str(cc)+"\n")
                 Gc=G.copy()
                 Gc=nx.DiGraph(Gc)
-                f = open('MS_rewiring_'+str(netsize)+'_'+str(round(percent,2)*100)+'.txt','w')
+
+                fn = 'MS_rewiring_'+str(netsize)+'_'+str(round(percent,2)*100)+'.txt'
+                output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prebuild_network")
+                if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+                f = open(os.path.join(output_dir, fn), 'wb')
+
                 comments="# "+str(round(percent,3)*100)+" "+str(cc)+" "
                 nx.write_adjlist(Gc, f, comments=comments)
                 f.close()
                 p_saved = round(percent,3)*1000/50
                 saved = True
+                break
                 
             connected=False
-
             
             edge1=random.choice(URE)
             URE.remove(edge1)
-            neighbors = G.neighbors(edge1[0])+G.neighbors(edge1[1])+[edge1[0],edge1[1]]
+            neighbors = list(G.neighbors(edge1[0])) + list(G.neighbors(edge1[1])) + [edge1[0], edge1[1]]
             #print edge1
             while connected==False:
                 iteration+=1
-                edge2 = random.choice(G.edges())
+                edge2 = random.choice(list(G.edges()))
                 
                 if (edge2[0] not in neighbors) and (edge2[1] not in neighbors):
                     connected=True
@@ -101,8 +108,9 @@ class access_network:
         return G
 
 
+for cave_n in range(5, 51, 5):
+    network = access_network()
+    G = network.caveman_network(cave_n, 100)
 
-network = access_network()
-G = network.caveman_network(10,100) # will produce and save networks with 10 100-node caves with different levels of random rewiring at every 5% interval.
-
-
+# network = access_network()
+# G = network.caveman_network(10,100) # will produce and save networks with 10 100-node caves with different levels of random rewiring at every 5% interval.
